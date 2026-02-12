@@ -20,6 +20,10 @@ editor: visual
 
 -   We’ll use a logistic relationship (since survival is binary), but don’t worry about the math - just run the code and comment what each line does
 
+Explanation:
+
+We are asking if canopy cover affects salamander survival. We have 12 different forest fragments with 20 salamanders per fragment, for a total of 12 canopy cover measurements and 240 salamanders collected. Our response variable is survival which is binary. This structure matters because we will need to draw the probability of survival given canopy cover from the binomial distribution.
+
 ```{r}
 library(tidyverse)
 library(lme4)  # for mixed models later
@@ -83,4 +87,13 @@ ggplot(fragment_summary, aes(x = canopy_cover, y = prop_survived)) +
   ) +
   ylim(0, 1) +
   theme_minimal(base_size = 14)
+```
+
+The model below assumes each salamander is a single independent observation and not grouped within forest fragments. They are not truly independent, we would assume that salamanders within the forest fragment are exposed to the same canopy cover so they are not truly independent. The unit of replication in this study is the salamander. If we ignore the fragment structure, survival may be grouped inappropriately by the model and give us an incorrect estimate. Our standard errors will increase and our p-value will also increase.
+
+```{r}
+
+##model
+salmod<-glm(survived ~ canopy_cover, family = binomial, data = salamander_data)
+summary(salmod)
 ```
