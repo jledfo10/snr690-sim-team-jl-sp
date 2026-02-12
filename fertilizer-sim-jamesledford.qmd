@@ -44,7 +44,7 @@ varieties <- c("A", "B", "C", "D", "E")
 blocks <- c("Block1", "Block2", "Block3", "Block4")   ### this is defining our variets and block for the experiment. 
 
 # Define the truth
-baseline_yield <- 3000  # kg/ha for variety A in block 1  # setting a baseline yeid as an object. 
+baseline_yield <- 3001  # kg/ha for variety A in block 1  # setting a baseline yeid as an object. 
 
 variety_effects <- c(
   A = 0,
