@@ -46,7 +46,7 @@ blocks <- c("Block1", "Block2", "Block3", "Block4")   ### this is defining our v
 # Define the truth
 baseline_yield <- 3000  # kg/ha for variety A in block 1  # setting a baseline yeid as an object. 
 
-variety_effects <- c(
+variety_efffects <- c(
   A = 0,
   B = 200,
   C = 350,
