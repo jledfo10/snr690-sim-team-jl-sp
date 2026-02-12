@@ -4,23 +4,83 @@ format: html
 editor: visual
 ---
 
-## Quarto
+## Salamander experiment (partner A)
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+**Scenario:** A researcher wants to know if canopy cover affects salamander survival in forest fragments. They marked 20 salamanders in each of 12 forest fragments and recorded whether each salamander survived (alive/dead) after one year. Canopy cover was measured as a percentage for each fragment.
 
-## Running Code
+**The truth (what we’re simulating):**
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+-   12 forest fragments
+
+-   20 salamanders per fragment (240 total salamanders)
+
+-   Canopy cover ranges from 40% to 90%
+
+-   True effect of canopy cover on survival probability: for every 10% increase in canopy cover, the log-odds of survival increases by 0.09
+
+-   We’ll use a logistic relationship (since survival is binary), but don’t worry about the math - just run the code and comment what each line does
 
 ```{r}
-1 + 1
+library(tidyverse)
+library(lme4)  # for mixed models later
+
+set.seed(42)
+
+# Define the experimental structure - assigning the number of sites(n=12), salamanders per site (n = 20), and the total number of salamanders (n = 240)
+n_fragments <- 12
+n_salamanders_per_fragment <- 20
+n_total <- n_fragments * n_salamanders_per_fragment
+
+# Define the truth   
+true_intercept <- -3.5   ##"beginning" survival - intercept
+true_canopy_effect <- 0.09  ##log odds of survival rate  
+
+# Create fragment-level data- fragments 1-12, with minimum canopy = 40 and max = 90
+fragment_data <- data.frame(
+  fragment_id = 1:n_fragments, ## get 12 rows with ID = 1- 12
+  canopy_cover = runif(n_fragments, min = 40, max = 90) ## canopy cover ranging from 40-90
+)
+
+# Create salamander-level data (each salamander belongs to a fragment)
+salamander_data <- data.frame(
+  salamander_id = 1:n_total, ## give unique ID to each 240 slamanders
+  fragment_id = rep(1:n_fragments, each = n_salamanders_per_fragment) ## assign 1 fragment ID to every 20 salamanders
+)
+
+# Merge to get canopy cover for each salamander
+salamander_data <- salamander_data %>%
+  left_join(fragment_data, by = "fragment_id") ##join data into one major dataset
+
+# Simulate survival using logistic regression formula
+salamander_data <- salamander_data %>%
+  mutate(
+    log_odds = true_intercept + true_canopy_effect * canopy_cover,##odds of survival given canopy effect(.09) times canopy cover
+    prob_survival = 1 / (1 + exp(-log_odds)), ##return the probability of survival from log odds of survival
+    survived = rbinom(n_total, size = 1, prob = prob_survival) ##pull random  variables(1= survived, 0 = dead) from binomial dist. given prob survival of that fragment
+  )
+
+# Look at the data
+head(salamander_data)
+summary(salamander_data)
+
+# Visualize: proportion surviving in each fragment- summarizing data to just canopy cover and fragment ID
+fragment_summary <- salamander_data %>%
+  group_by(fragment_id, canopy_cover) %>%
+  summarise(
+    n_survived = sum(survived),
+    n_total = n(),
+    prop_survived = n_survived / n_total,
+    .groups = "drop"
+  )
+
+ggplot(fragment_summary, aes(x = canopy_cover, y = prop_survived)) +
+  geom_point(size = 4, alpha = 0.7) +
+  labs(
+    title = "Simulated: Canopy Cover vs. Salamander Survival",
+    subtitle = "Each point = one forest fragment (20 salamanders each)",
+    x = "Canopy Cover (%)",
+    y = "Proportion Survived"
+  ) +
+  ylim(0, 1) +
+  theme_minimal(base_size = 14)
 ```
-
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
