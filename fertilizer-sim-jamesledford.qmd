@@ -44,7 +44,7 @@ varieties <- c("A", "B", "C", "D", "E")
 blocks <- c("Block1", "Block2", "Block3", "Block4")   ### this is defining our variets and block for the experiment. 
 
 # Define the truth
-baseline_yield <- 3001  # kg/ha for variety A in block 1  # setting a baseline yeid as an object. 
+baseline_yield <- 3000  # kg/ha for variety A in block 1  # setting a baseline yeid as an object. 
 
 variety_efffects <- c(
   A = 0,
@@ -102,4 +102,11 @@ library(car)
 
 mod <-aov(yield~variety, data=wheat_data)
 summary(mod)
+
+## this assumes that all block are equal and there is no variation
+## if block two has a higher soil quality, it will inflate the variation in the model
+## if we ignore variation in the model, we underestimate unertainity. 
+
+# Key question: The blocks were part of the experimental design. If we don’t account for them in the analysis, are we throwing away information? What does that do to our standard errors and our ability to detect real variety differences? 
+### we are throwing away information in the varaition by assmuming the fertilizer treatments control the yield independently, while ignoring the soil quality in the fields. It will underestimate our standard error. It will make it more difficult to understand our variation in the blocks. 
 ```
