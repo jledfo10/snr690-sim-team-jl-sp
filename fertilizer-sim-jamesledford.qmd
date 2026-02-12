@@ -15,7 +15,14 @@ test
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
-1 + 1
+1 +
+```
+
+```{r}
+
+```
+
+```{1}
 ```
 
 You can add options to executable code like this
@@ -26,3 +33,73 @@ You can add options to executable code like this
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+library(tidyverse) ### this loads the package that we will run the analysis in 
+
+set.seed(123)  ### this alows for someone to set their seed to the same and obtain the same results
+
+# Define experimental structure
+varieties <- c("A", "B", "C", "D", "E")
+blocks <- c("Block1", "Block2", "Block3", "Block4")   ### this is defining our variets and block for the experiment. 
+
+# Define the truth
+baseline_yield <- 3000  # kg/ha for variety A in block 1  # setting a baseline yeid as an object. 
+
+variety_effects <- c(
+  A = 0,
+  B = 200,
+  C = 350,
+  D = 100,
+  E = -50
+) # setting the effect for the different varieties 
+
+block_effects <- c(
+  Block1 = 0,
+  Block2 = 150,
+  Block3 = -100,
+  Block4 = 200
+) # setting an effect for the different blocks 
+
+noise_sd <- 120 # creating a standard deviation 
+
+# Create all combinations of variety and block (full factorial design)
+wheat_data <- expand.grid(
+  variety = varieties,
+  block = blocks
+) 
+
+# Add true yield based on variety and block effects
+wheat_data <- wheat_data %>%
+  mutate(
+    variety_effect = variety_effects[variety],
+    block_effect = block_effects[block],
+    true_yield = baseline_yield + variety_effect + block_effect,
+    yield = true_yield + rnorm(n(), mean = 0, sd = noise_sd)
+  )
+
+## 
+
+# Look at the data
+head(wheat_data)
+summary(wheat_data)
+
+# Visualize
+ggplot(wheat_data, aes(x = variety, y = yield, color = block)) +
+  geom_point(size = 4, alpha = 0.7, position = position_dodge(width = 0.3)) +
+  stat_summary(fun = mean, geom = "crossbar", width = 0.5, 
+               color = "black", size = 0.3) +
+  labs(
+    title = "Simulated: Wheat Variety Yields Across Blocks",
+    subtitle = "Each point = one plot; crossbar = variety mean across blocks",
+    x = "Wheat Variety",
+    y = "Yield (kg/ha)",
+    color = "Block"
+  ) +
+  theme_minimal(base_size = 14)
+
+library(car)
+
+mod <-aov(yield~variety, data=wheat_data)
+summary(mod)
+```
